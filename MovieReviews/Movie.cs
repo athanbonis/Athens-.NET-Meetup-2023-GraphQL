@@ -40,8 +40,8 @@ public class MovieTypeExtension : ObjectTypeExtension<Movie>
             .Resolve(async (context) =>
             {
                 var movie = context.Parent<Movie>();
-                var reviewsService = context.Services.GetRequiredService<IReviewService>();
-                return await reviewsService.GetByMovieIds(new[] { movie.Id });
+                var dataLoader = context.DataLoader<ReviewsByMovieIdsBatchDataLoader>();
+                return await dataLoader.LoadAsync(movie.Id);
             });
     }
 }

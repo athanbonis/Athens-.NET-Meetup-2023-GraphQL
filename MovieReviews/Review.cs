@@ -32,14 +32,36 @@ public class ReviewType : ObjectType<Review>
     }
 }
 
+public class ReviewsByMovieIdsBatchDataLoader : BatchDataLoader<int, Review[]>
+{
+    private readonly IReviewService _reviewService;
+
+    public ReviewsByMovieIdsBatchDataLoader(
+        IBatchScheduler batchScheduler, 
+        IReviewService reviewService,
+        DataLoaderOptions options = null) 
+        : base(batchScheduler, options)
+    {
+        _reviewService = reviewService;
+    }
+
+    protected override async Task<IReadOnlyDictionary<int, Review[]>> LoadBatchAsync(
+        IReadOnlyList<int> keys, 
+        CancellationToken cancellationToken)
+    {
+        var reviews = await _reviewService.GetByMovieIds(keys, cancellationToken);
+        return reviews?.GroupBy(x => x.MovieId).ToDictionary(x => x.Key, x => x.ToArray());
+    }
+}
+
 public interface IReviewService
 {
-    Task<Review[]> GetByMovieIds(IReadOnlyList<int> movieIds);
+    Task<Review[]> GetByMovieIds(IReadOnlyList<int> movieIds, CancellationToken cancellationToken);
 }
 
 public class ReviewService : IReviewService
 {
-    public async Task<Review[]> GetByMovieIds(IReadOnlyList<int> movieIds)
+    public async Task<Review[]> GetByMovieIds(IReadOnlyList<int> movieIds, CancellationToken cancellationToken)
     {
         // simulate an API
         await Task.Delay(2000);
