@@ -1,4 +1,6 @@
-﻿namespace MovieReviews;
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace MovieReviews;
 
 public record Movie(int Id, string Title, string Description, string Director, DateTime Published);
 
@@ -26,4 +28,31 @@ public class MovieType : ObjectType<Movie>
             .Field(f => f.Published)
             .Type<DateTimeType>();
     }
+}
+
+public class MovieTypeExtension : ObjectTypeExtension<Movie>
+{
+    protected override void Configure(IObjectTypeDescriptor<Movie> descriptor)
+    {
+        descriptor
+            .Field("reviews")
+            .Type<ListType<ReviewType>>()
+            .Resolve(async (context) =>
+            {
+                var movie = context.Parent<Movie>();
+                var reviewsService = context.Services.GetRequiredService<IReviewService>();
+                return await reviewsService.GetByMovieIds(new[] { movie.Id });
+            });
+    }
+}
+
+public class MovieDbContext : DbContext
+{
+    protected override void OnConfiguring
+   (DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.UseInMemoryDatabase(databaseName: "MovieDb");
+    }
+
+    public DbSet<Movie> Movies { get; set; }
 }
