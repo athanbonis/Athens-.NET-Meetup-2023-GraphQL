@@ -13,4 +13,14 @@ public class Query
             new Movie(5, "Movie 5", "Movie 5 description.", "Director 3", DateTime.UtcNow.AddMonths(-16)),
         };
     }
+
+    public class QueryType : ObjectType<Query>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+        {
+            descriptor
+                .Field(f => f.GetMovies())
+                .Type<ListType<MovieType>>();
+        }
+    }
 }
