@@ -9,3 +9,13 @@ public class Query
         return db.Movies.ToArrayAsync();
     }
 }
+
+public class QueryType : ObjectType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor
+            .Field(f => f.GetMovies(default))
+            .Type<ListType<MovieType>>();
+    }
+}
